@@ -1,0 +1,15 @@
+{
+  "mean_ndvi": 0.2778,
+  "min_ndvi": -0.8469,
+  "max_ndvi": 0.8667,
+  "vegetation_coverage_percentage": 85.5,
+  "healthy_percentage": 1.2,
+  "stressed_percentage": 84.4,
+  "non_vegetated_percentage": 14.5,
+  "timestamp": "2026-02-28T05:57:06Z",
+  "location": {
+    "lat": 20.824867,
+    "lon": 73.891525,
+    "area_km": 10.0
+  }
+}

@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AgroSphere AI - NDVI Analysis</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <header>
+            <h1>🌱 AgroSphere AI</h1>
+            <p>Satellite-Based Vegetation Health Analysis</p>
+        </header>
+
+        <div class="main-content">
+            <!-- Left Panel: Map & Controls -->
+            <div class="left-panel">
+                <div class="card">
+                    <h2>📍 Select Location</h2>
+                    <p class="hint">Click on the map or enter coordinates manually</p>
+                    
+                    <div id="map"></div>
+                    
+                    <div class="controls">
+                        <div class="input-group">
+                            <label>Latitude</label>
+                            <input type="number" id="lat" step="0.000001" placeholder="e.g., 20.824867">
+                        </div>
+                        <div class="input-group">
+                            <label>Longitude</label>
+                            <input type="number" id="lon" step="0.000001" placeholder="e.g., 73.891525">
+                        </div>
+                        <div class="input-group">
+                            <label>Area Size (km)</label>
+                            <input type="number" id="area" value="10" min="1" max="50" step="0.5">
+                        </div>
+                        <button id="analyzeBtn" class="btn-primary">
+                            <span class="btn-text">🛰️ Analyze Vegetation</span>
+                            <span class="loader" style="display: none;"></span>
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Right Panel: Results -->
+            <div class="right-panel">
+                <div id="welcomeScreen" class="card welcome">
+                    <div class="welcome-icon">🌍</div>
+                    <h2>Welcome to AgroSphere AI</h2>
+                    <p>Select a location on the map to analyze vegetation health using satellite imagery.</p>
+                    <div class="features">
+                        <div class="feature">
+                            <span class="icon">🛰️</span>
+                            <span>Sentinel-2 Satellite Data</span>
+                        </div>
+                        <div class="feature">
+                            <span class="icon">📊</span>
+                            <span>NDVI Computation</span>
+                        </div>
+                        <div class="feature">
+                            <span class="icon">🌱</span>
+                            <span>Vegetation Health Analysis</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div id="resultsScreen" class="card" style="display: none;">
+                    <h2>📊 Analysis Results</h2>
+                    
+                    <!-- NDVI Map -->
+                    <div class="ndvi-map-container">
+                        <h3>Vegetation Health Map</h3>
+                        <img id="ndviMap" src="" alt="NDVI Map">
+                        <div class="legend">
+                            <div class="legend-item">
+                                <span class="color-box" style="background: #d73027;"></span>
+                                <span>Low (Stressed)</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="color-box" style="background: #fee08b;"></span>
+                                <span>Moderate</span>
+                            </div>
+                            <div class="legend-item">
+                                <span class="color-box" style="background: #1a9850;"></span>
+                                <span>High (Healthy)</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Statistics Cards -->
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-value" id="meanNdvi">-</div>
+                            <div class="stat-label">Mean NDVI</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">🌿</div>
+                            <div class="stat-value" id="vegCoverage">-</div>
+                            <div class="stat-label">Vegetation Coverage</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">✅</div>
+                            <div class="stat-value" id="healthyPct">-</div>
+                            <div class="stat-label">Healthy Vegetation</div>
+                        </div>
+                        <div class="stat-card">
+                            <div class="stat-icon">⚠️</div>
+                            <div class="stat-value" id="stressedPct">-</div>
+                            <div class="stat-label">Stressed Vegetation</div>
+                        </div>
+                    </div>
+
+                    <!-- Key Insights -->
+                    <div class="insights-section">
+                        <h3>🔍 Key Insights</h3>
+                        <div class="insight-content" id="insightContent">
+                            <p class="insight-intro">From this region:</p>
+                            <ul class="insight-list">
+                                <li id="insightHealthy">-</li>
+                                <li id="insightStressed">-</li>
+                                <li id="insightNonVeg">-</li>
+                            </ul>
+                            <p class="insight-summary" id="insightSummary">-</p>
+                            <p class="insight-warning">⚠️ This is extremely important.</p>
+                        </div>
+                    </div>
+
+                    <!-- Market Prediction -->
+                    <div class="prediction-section">
+                        <h3>🎯 Market Prediction & Recommendation</h3>
+                        
+                        <!-- Step 1: Production Analysis -->
+                        <div class="prediction-step">
+                            <div class="step-header">
+                                <span class="step-number">🧠 Step 1</span>
+                                <span class="step-title">What Does This Say About Production?</span>
+                            </div>
+                            <div class="step-content">
+                                <div class="ndvi-rules">
+                                    <p class="rules-title">We use simple NDVI rules:</p>
+                                    <div class="rule-item">NDVI > 0.6 → Healthy, strong yield</div>
+                                    <div class="rule-item">0.3 – 0.6 → Moderate yield</div>
+                                    <div class="rule-item">< 0.3 → Yield loss expected</div>
+                                </div>
+                                <div class="analysis-box">
+                                    <p class="analysis-title">Now apply this:</p>
+                                    <p id="ndviAnalysis">-</p>
+                                    <p id="stressAnalysis">-</p>
+                                    <p class="conclusion" id="productionConclusion">-</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Step 2: Supply Impact -->
+                        <div class="prediction-step">
+                            <div class="step-header">
+                                <span class="step-number">📉 Step 2</span>
+                                <span class="step-title">What Does Low Production Mean for Supply?</span>
+                            </div>
+                            <div class="step-content">
+                                <div class="logic-chain">
+                                    <div class="logic-item">Low production = Low supply</div>
+                                    <div class="logic-arrow">↓</div>
+                                    <div class="logic-item">Low supply = Scarcity</div>
+                                </div>
+                                <div class="inference-box" id="supplyInference">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 3: Price Impact -->
+                        <div class="prediction-step">
+                            <div class="step-header">
+                                <span class="step-number">📈 Step 3</span>
+                                <span class="step-title">What Happens to Price When Supply Is Low?</span>
+                            </div>
+                            <div class="step-content">
+                                <div class="economics-box">
+                                    <p class="economics-title">Basic economics:</p>
+                                    <div class="economics-item">✓ Demand remains constant</div>
+                                    <div class="economics-item">✓ Supply reduces</div>
+                                    <div class="economics-item">✓ Price goes UP</div>
+                                </div>
+                                <div class="prediction-box" id="pricePrediction">-</div>
+                            </div>
+                        </div>
+
+                        <!-- Step 4: Final Recommendation -->
+                        <div class="prediction-step final-step">
+                            <div class="step-header">
+                                <span class="step-number">🟡 Step 4</span>
+                                <span class="step-title">Final Decision – SELL or WAIT?</span>
+                            </div>
+                            <div class="step-content">
+                                <div class="reasoning-box">
+                                    <p class="reasoning-title">Because:</p>
+                                    <div class="reasoning-item" id="reason1">-</div>
+                                    <div class="reasoning-item" id="reason2">-</div>
+                                    <div class="reasoning-item" id="reason3">-</div>
+                                </div>
+                                <div class="recommendation-box">
+                                    <div class="recommendation-label">✅ System Recommendation:</div>
+                                    <div class="recommendation-action" id="recommendation">-</div>
+                                    <div class="action-translation">
+                                        <div class="action-item">Current action: <span id="currentAction">-</span></div>
+                                        <div class="action-item">Future action: <span id="futureAction">-</span></div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- One-Line Summary -->
+                        <div class="summary-banner" id="summaryBanner">-</div>
+                    </div>
+
+                    <!-- Detailed Info -->
+                    <div class="info-section">
+                        <h3>📍 Location Details</h3>
+                        <div class="info-grid">
+                            <div class="info-item">
+                                <span class="info-label">Coordinates:</span>
+                                <span class="info-value" id="coordinates">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Area:</span>
+                                <span class="info-value" id="areaInfo">-</span>
+                            </div>
+                            <div class="info-item">
+                                <span class="info-label">Analysis Time:</span>
+                                <span class="info-value" id="timestamp">-</span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- NDVI Explanation -->
+                    <div class="explanation">
+                        <h3>🤔 What is NDVI?</h3>
+                        <p><strong>NDVI (Normalized Difference Vegetation Index)</strong> measures vegetation health using satellite imagery.</p>
+                        
+                        <div class="how-it-works">
+                            <h4>How it works:</h4>
+                            <ol>
+                                <li><strong>Satellite captures two bands:</strong>
+                                    <ul>
+                                        <li>🔴 Red light (absorbed by healthy plants)</li>
+                                        <li>🌈 Near-Infrared (reflected by healthy plants)</li>
+                                    </ul>
+                                </li>
+                                <li><strong>Calculate NDVI:</strong>
+                                    <div class="formula">NDVI = (NIR - Red) / (NIR + Red)</div>
+                                </li>
+                                <li><strong>Interpret results:</strong>
+                                    <ul>
+                                        <li>-1.0 to 0.2: Bare soil, water, urban areas</li>
+                                        <li>0.2 to 0.6: Sparse or stressed vegetation</li>
+                                        <li>0.6 to 1.0: Healthy, dense vegetation</li>
+                                    </ul>
+                                </li>
+                            </ol>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+    <script src="app.js"></script>
+</body>
+</html>

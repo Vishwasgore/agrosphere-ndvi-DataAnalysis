@@ -1,0 +1,33 @@
+# Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+venv/
+env/
+.env
+
+# Sensitive credentials - NEVER commit these
+credentials.py
+secrets.py
+
+# Generated output files (large binary files)
+ndvi_raw.npy
+red_band.tif
+nir_band.tif
+
+# Keep ndvi_map.png and ndvi_analysis.json as they are small and useful for demo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+*.swp
